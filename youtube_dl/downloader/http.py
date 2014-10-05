@@ -22,7 +22,7 @@ class HttpFD(FileDownloader):
         # self.to_screen("url: %s, http_headers: %r" % (url, info_dict.get("http_headers")))
         # self.to_screen("filename: %s, tmpfilename: %s" % (filename, tmpfilename))
 
-        cmd = ["axel", "-a", "-o", tmpfilename, url]
+        cmd = ["axel", "-a", "--num-connections=10", "-o", tmpfilename, url]
 
         p = subprocess.Popen(cmd,
                             bufsize=0,
