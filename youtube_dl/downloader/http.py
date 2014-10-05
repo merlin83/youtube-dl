@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 
 from .common import FileDownloader
@@ -12,12 +13,35 @@ from ..utils import (
     format_bytes,
 )
 
-
 class HttpFD(FileDownloader):
     def real_download(self, filename, info_dict):
         url = info_dict['url']
         tmpfilename = self.temp_name(filename)
         stream = None
+
+        # self.to_screen("url: %s, http_headers: %r" % (url, info_dict.get("http_headers")))
+        # self.to_screen("filename: %s, tmpfilename: %s" % (filename, tmpfilename))
+
+        cmd = ["axel", "-a", "-o", tmpfilename, url]
+
+        p = subprocess.Popen(cmd,
+                            bufsize=0,
+                            universal_newlines=True,
+                            stderr=subprocess.STDOUT,
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
+
+        while p.poll() is None:
+            """
+            [ 22%] [..0          ..1         ..2          ..3         ] [ 245.6KB/s] [18:45]
+            """
+            line = p.stdout.readline()
+            self._report_progress_status(unicode(line, errors='replace').strip())
+
+        self._report_progress_status(unicode(p.stdout.read(), errors='replace').strip(), is_last_line=True)
+        self.try_rename(tmpfilename, filename)
+
+        return True
 
         # Do not include the Accept-Encoding header
         headers = {'Youtubedl-no-compression': 'True'}
